@@ -1,0 +1,16 @@
+1. Compile IDL
+idlj -fall Calculator.idl
+
+2.
+javac *.java
+
+3.
+orbd -ORBInitialPort 8080
+
+4.Run the server
+java Server -ORBInitialPort 8080 -ORBInitialHost localhost
+
+
+Run the client
+java Client -ORBInitialPort 8080 -ORBInitialHost localhost
+
