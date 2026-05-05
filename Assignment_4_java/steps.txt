@@ -1,0 +1,19 @@
+1. type mpj-express and extract
+
+2. 
+sudo gedit ~/.bashrc
+
+export MPJ_HOME="/home/pvg/mpj-v0_44"
+export PATH=$MPJ_HOME/bin:$PATH
+
+3.save
+source ~/.bashrc
+
+close and open terminal
+
+4. Compile
+javac -cp "$MPJ_HOME/lib/mpj.jar" DistributedSum.java
+
+5.Run
+$MPJ_HOME/bin/mpjrun.sh -np 4 DistributedSum
+
