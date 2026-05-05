@@ -1,3 +1,5 @@
 *.class
 Assignment_4/zip_files/openmpi-4.1.4/*
 *.out
+*.classpath
+*.project
