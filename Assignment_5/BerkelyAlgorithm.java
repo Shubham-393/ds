@@ -1,91 +1,74 @@
-import java.text.*;
-import java.util.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Scanner;
 
-public class BerkelyAlgorithm 
-{
-    public static void main(String[] args) throws ParseException 
-    {
+public class BerkeleyAlgorithm {
+
+    public static void main(String[] args) throws Exception {
+
         Scanner sc = new Scanner(System.in);
-        System.out.print("Enter number of clients in your network: ");
-        int clientCount = sc.nextInt();
+
+        System.out.print("Enter number of clients: ");
+        int n = sc.nextInt();
         sc.nextLine();
-        String[] timeString = new String[1 + clientCount];
-        for (int i = 0; i < timeString.length; i++) 
-        {
-            if (i == 0) 
-            {
-                System.out.print("Enter time displayed in Server (HH:mm): ");
-            } 
-            else 
-            {
-                System.out.print("Enter time displayed in Client " + i + " (HH:mm): ");
-            }
-            String time = sc.nextLine();
-            timeString[i] = appendCurrentDateToTime(time);
+
+        String[] clocks = new String[n + 1];
+
+        // Input
+        for (int i = 0; i <= n; i++) {
+            if (i == 0)
+                System.out.print("Enter Server Time (HH:mm): ");
+            else
+                System.out.print("Enter Client " + i + " Time (HH:mm): ");
+
+            clocks[i] = sc.nextLine();
         }
+
         System.out.println("\nBefore Synchronization");
-        displayTime(timeString,"");
-        berkeleyAlgorithm(timeString);
+        display(clocks);
+
+        synchronize(clocks);
+
         System.out.println("\nAfter Synchronization");
-        displayTime(timeString, "Synchronized ");
+        display(clocks);
+
         sc.close();
     }
 
-    public static void berkeleyAlgorithm(String[] timeString) throws ParseException 
-    {
-        int n = timeString.length;
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm | yyyy-MM-dd");
-        long[] timeInMilliseconds = new long[n];
-        for (int i = 0; i < n; i++) 
-        {
-            timeInMilliseconds[i] = simpleDateFormat.parse(timeString[i]).getTime();
+    static void synchronize(String[] clocks) throws Exception {
+
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+
+        long[] time = new long[clocks.length];
+
+        // Convert time into milliseconds
+        for (int i = 0; i < clocks.length; i++) {
+            time[i] = sdf.parse(clocks[i]).getTime();
         }
-        long serverTime = timeInMilliseconds[0];
-        long[] differenceInTimeWithServer = new long[n];
-        for (int i = 0; i < n; i++) 
-        {
-            differenceInTimeWithServer[i] = timeInMilliseconds[i]- serverTime;
+
+        long serverTime = time[0];
+        long totalDiff = 0;
+
+        // Find difference with server
+        for (int i = 0; i < time.length; i++) {
+            totalDiff += (time[i] - serverTime);
         }
-        long avg = 0;
-        for (int i = 0; i < n; i++) 
-        {
-            avg += differenceInTimeWithServer[i];
-        }
-        avg /= n;
-        System.out.println("Fault tolerant average = " + avg / (1000 * 60)); 
-        for (int i = 0; i < n; i++) 
-        {
-            long offset = avg- differenceInTimeWithServer[i];
-            timeInMilliseconds[i] += offset;
-            if (i == 0) 
-            {
-                continue;
-            }
-            System.out.println("Clock " + i + " adjustment = " + offset / (1000 * 60));
-        }
-        for (int i = 0; i < n; i++) 
-        {
-            timeString[i] = simpleDateFormat.format(new Date(timeInMilliseconds[i]));
+
+        long avg = totalDiff / time.length;
+
+        // Adjust clocks
+        for (int i = 0; i < time.length; i++) {
+            time[i] = time[i] + (avg - (time[i] - serverTime));
+            clocks[i] = sdf.format(new Date(time[i]));
         }
     }
 
-    private static void displayTime(String[] time, String prefix) 
-    {
-        System.out.println(prefix + "Server Clock:\t" + time[0]);
-        for (int i = 1; i < time.length; i++) 
-        {
-            System.out.println(prefix + "Client " + i + " Clock:\t" + time[i]);
-        }
-        System.out.println();
-    }
+    static void display(String[] clocks) {
 
-    private static String appendCurrentDateToTime(String time) 
-    {
-        Calendar calendar = new GregorianCalendar();
-        calendar.setTime(new Date());
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH) + 1;
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        return time + " | " + year + "-" + month + "-" + day;
+        System.out.println("Server Clock : " + clocks[0]);
+
+        for (int i = 1; i < clocks.length; i++) {
+            System.out.println("Client " + i + " Clock : " + clocks[i]);
+        }
     }
 }
