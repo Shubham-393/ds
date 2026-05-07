@@ -58,7 +58,12 @@ public class BerkeleyAlgorithm {
 
         // Adjust clocks
         for (int i = 0; i < time.length; i++) {
-            time[i] = time[i] + (avg - (time[i] - serverTime));
+            // time[i] = time[i] + (avg - (time[i] - serverTime));
+
+            long diff = time[i] - serverTime; //clnt1 - server
+            long correction = avg - diff;
+            time[i] += correction;
+
             clocks[i] = sdf.format(new Date(time[i]));
         }
     }
