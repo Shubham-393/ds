@@ -1,43 +1,68 @@
 import mpi.*;
 
 public class DistributedSum {
-    public static void main(String[] args) throws MPIException 
-    {
+
+    public static void main(String[] args) throws MPIException, InterruptedException {
+
         MPI.Init(args);
-        int rank = MPI.COMM_WORLD.Rank(); 
-        int size = MPI.COMM_WORLD.Size(); 
-        int[] array = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}; 
-        int n = array.length; 
+
+        int rank = MPI.COMM_WORLD.Rank();
+        int size = MPI.COMM_WORLD.Size();
+
+        int[] array = {1,2,3,4,5,6,7,8,9,10};
+
+        int n = array.length;
+
+        // Equal elements for each process
         int local_n = n / size;
-        int remainder = n % size; 
 
-        int[] local_array = new int[local_n + (rank < remainder ? 1 : 0)]; 
-        int offset = rank * local_n + Math.min(rank, remainder); 
-        for (int i = 0; i < local_array.length; i++) 
-        {
-            local_array[i] = array[offset + i];
+        int start = rank * local_n;
+        int end = start + local_n;
+
+        int local_sum = 0;
+
+        // Each process calculates local sum
+        for (int i = start; i < end; i++) {
+            local_sum += array[i];
         }
 
-        int local_sum = 0; 
-        for (int i = 0; i < local_array.length; i++) 
-        {
-            local_sum += local_array[i];
-        }
-        
-        int[] global_sums = new int[size]; 
-        MPI.COMM_WORLD.Allgather(new int[]{local_sum}, 0, 1, MPI.INT, global_sums, 0, 1,MPI.INT); 
-        if (rank == 0) 
-        { 
-            System.out.println("Number of Processes Entered: "+ size);
-            System.out.println("\nIntermediate Sums:");
-            int sum = 0;
-            for (int i = 0; i < size; i++) 
-            {
-                sum += global_sums[i];
-                System.out.println("Process " + i + ": " + global_sums[i]);
+        // Last process adds remaining elements
+        if (rank == size - 1) {
+
+            for (int i = end; i < n; i++) {
+                local_sum += array[i];
             }
-            System.out.println("\nTotal Sum: " + sum);
         }
+
+        System.out.println("Process " + rank +
+                " Local Sum = " + local_sum);
+
+        // Gather all local sums
+        int[] global_sums = new int[size];
+        
+        MPI.COMM_WORLD.Gather(
+                new int[]{local_sum}, 0, 1, MPI.INT,
+                global_sums, 0, 1, MPI.INT,
+                0);
+
+        // Root process calculates final sum
+        if (rank == 0) {
+
+            int total = 0;
+
+            System.out.println("\nIntermediate Sums:");
+            
+            for (int i = 0; i < size; i++) {
+
+                System.out.println("Process " + i +
+                        " = " + global_sums[i]);
+
+                total += global_sums[i];
+            }
+
+            System.out.println("\nTotal Sum = " + total);
+        }
+
         MPI.Finalize();
     }
 }
