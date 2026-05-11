@@ -10,9 +10,11 @@ public class Client {
         try 
         {
             ORB orb = ORB.init(args, null);
+
             org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
             NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
             Calculator calculator = CalculatorHelper.narrow(ncRef.resolve_str("ABC"));
+            
             Scanner sc = new Scanner(System.in);
             System.out.println("Welcome to addition system:");
             while (true) 

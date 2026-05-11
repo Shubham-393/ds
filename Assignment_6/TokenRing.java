@@ -1,49 +1,147 @@
+
 import java.util.Scanner;
+
+class ProcessNode extends Thread {
+
+    int id;
+    boolean wantsCS;
+
+    public ProcessNode(int id, boolean wantsCS) {
+        this.id = id;
+        this.wantsCS = wantsCS;
+    }
+
+    public void executeCS() throws Exception {
+
+        System.out.println(">> Process " + id + " ENTERED Critical Section");
+
+        Thread.sleep(1500);
+
+        System.out.println("   Process " + id + " EXECUTING inside C.S");
+
+        Thread.sleep(1500);
+
+        System.out.println("<< Process " + id + " EXITED Critical Section\n");
+    }
+}
 
 public class TokenRing {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         Scanner sc = new Scanner(System.in);
 
         System.out.print("Enter number of processes: ");
         int n = sc.nextInt();
 
-        boolean[] request = new boolean[n];
+        ProcessNode[] processes = new ProcessNode[n];
 
-        System.out.print("Enter processes requesting CS: ");
+        System.out.print("Enter number of processes requesting C.S: ");
         int m = sc.nextInt();
 
-        System.out.println("Enter process IDs:");
+        boolean[] request = new boolean[n];
 
+        // Taking requests
         for (int i = 0; i < m; i++) {
-            int id = sc.nextInt();
-            request[id] = true;
+
+            System.out.print("Enter Process ID: ");
+            int pid = sc.nextInt();
+
+            if (pid >= 0 && pid < n) {
+                request[pid] = true;
+            } else {
+                System.out.println("Invalid Process ID");
+                i--;
+            }
+        }
+
+        // Create process threads
+        for (int i = 0; i < n; i++) {
+            processes[i] = new ProcessNode(i, request[i]);
         }
 
         int token = 0;
+        int completed = 0;
 
-        System.out.println("\nToken Ring Execution:");
+        System.out.println("\n===== TOKEN RING STARTED =====\n");
 
-        for (int i = 0; i < n; i++) {
+        while (completed < m) {
 
             System.out.println("Token at Process " + token);
 
-            if (request[token]) {
-                System.out.println("Process " + token + " ENTERS Critical Section");
+            ProcessNode current = processes[token];
 
-                // Critical Section means accessing shared resource.
-                // Example =  Writing shared file, Using printer,  Updating database
-                
-                System.out.println("Process " + token + " EXITS Critical Section");
+            // Only token holder can enter CS
+            if (current.wantsCS) {
+
+                current.executeCS();
+
+                current.wantsCS = false;
+
+                completed++;
+            } else {
+
+                System.out.println("Process " + token + " does not need C.S\n");
             }
 
+            // Pass token
             token = (token + 1) % n;
+
+            Thread.sleep(1000);
         }
+
+        System.out.println("===== ALL PROCESSES COMPLETED =====");
 
         sc.close();
     }
 }
+
+// import java.util.Scanner;
+
+// public class TokenRing {
+
+//     public static void main(String[] args) {
+
+//         Scanner sc = new Scanner(System.in);
+
+//         System.out.print("Enter number of processes: ");
+//         int n = sc.nextInt();
+
+//         boolean[] request = new boolean[n];
+
+//         System.out.print("Enter processes requesting CS: ");
+//         int m = sc.nextInt();
+
+//         System.out.println("Enter process IDs:");
+
+//         for (int i = 0; i < m; i++) {
+//             int id = sc.nextInt();
+//             request[id] = true;
+//         }
+
+//         int token = 0;
+
+//         System.out.println("\nToken Ring Execution:");
+
+//         for (int i = 0; i < n; i++) {
+
+//             System.out.println("Token at Process " + token);
+
+//             if (request[token]) {
+//                 System.out.println("Process " + token + " ENTERS Critical Section");
+
+//                 // Critical Section means accessing shared resource.
+//                 // Example =  Writing shared file, Using printer,  Updating database
+                
+//                 System.out.println("Process " + token + " EXITS Critical Section");
+//             }
+
+//             token = (token + 1) % n;
+//         }
+
+//         sc.close();
+//     }
+// }
 
 
 
